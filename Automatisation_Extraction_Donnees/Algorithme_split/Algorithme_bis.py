@@ -25,7 +25,7 @@ class Modle(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, model_feedback):
         # Use a multi-step feedback, so that individual child algorithm progress reports are adjusted for the
         # overall progress through the model
-        feedback = QgsProcessingMultiStepFeedback(8, model_feedback)
+        feedback = QgsProcessingMultiStepFeedback(11, model_feedback)
         results = {}
         outputs = {}
 
@@ -68,6 +68,15 @@ class Modle(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
+        # Branche conditionnelle mammif 2
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleMammif2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(4)
+        if feedback.isCanceled():
+            return {}
+
         # Charger la couche dans le projet amphi
         alg_params = {
             'INPUT': 'C:/Users/lored/Documents/MNE/groupe_tax_Amphibiens.shp',
@@ -75,7 +84,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['ChargerLaCoucheDansLeProjetAmphi'] = processing.run('native:loadlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(4)
+        feedback.setCurrentStep(5)
         if feedback.isCanceled():
             return {}
 
@@ -84,7 +93,16 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleOiseaux'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(5)
+        feedback.setCurrentStep(6)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle amphi 2
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleAmphi2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(7)
         if feedback.isCanceled():
             return {}
 
@@ -95,7 +113,16 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['ChargerLaCoucheDansLeProjetOiseaux'] = processing.run('native:loadlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(6)
+        feedback.setCurrentStep(8)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle oiseaux 2
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleOiseaux2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(9)
         if feedback.isCanceled():
             return {}
 
@@ -104,7 +131,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleMammif'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(7)
+        feedback.setCurrentStep(10)
         if feedback.isCanceled():
             return {}
 
