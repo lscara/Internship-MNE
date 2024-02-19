@@ -25,7 +25,7 @@ class Modle(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, model_feedback):
         # Use a multi-step feedback, so that individual child algorithm progress reports are adjusted for the
         # overall progress through the model
-        feedback = QgsProcessingMultiStepFeedback(2, model_feedback)
+        feedback = QgsProcessingMultiStepFeedback(5, model_feedback)
         results = {}
         outputs = {}
 
@@ -54,6 +54,37 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['SparerUneCoucheVecteur'] = processing.run('native:splitvectorlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         results['DossierMne'] = outputs['SparerUneCoucheVecteur']['OUTPUT']
+
+        feedback.setCurrentStep(2)
+        if feedback.isCanceled():
+            return {}
+
+        # Charger la couche dans le projet mammif
+        alg_params = {
+            'INPUT': 'C:/Users/lored/Documents/MNE/groupe_tax_MammifÃ¨res.shp',
+            'NAME': 'Mammifères'
+        }
+        outputs['ChargerLaCoucheDansLeProjetMammif'] = processing.run('native:loadlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(3)
+        if feedback.isCanceled():
+            return {}
+
+        # Charger la couche dans le projet amphi
+        alg_params = {
+            'INPUT': 'C:/Users/lored/Documents/MNE/groupe_tax_Amphibiens.shp',
+            'NAME': 'Amphibiens'
+        }
+        outputs['ChargerLaCoucheDansLeProjetAmphi'] = processing.run('native:loadlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(4)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle amphi
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleAmphi'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         return results
 
     def name(self):
