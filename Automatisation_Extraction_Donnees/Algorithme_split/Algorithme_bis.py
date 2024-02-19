@@ -25,7 +25,7 @@ class Modle(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, model_feedback):
         # Use a multi-step feedback, so that individual child algorithm progress reports are adjusted for the
         # overall progress through the model
-        feedback = QgsProcessingMultiStepFeedback(5, model_feedback)
+        feedback = QgsProcessingMultiStepFeedback(8, model_feedback)
         results = {}
         outputs = {}
 
@@ -59,12 +59,10 @@ class Modle(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Charger la couche dans le projet mammif
+        # Branche conditionnelle amphi
         alg_params = {
-            'INPUT': 'C:/Users/lored/Documents/MNE/groupe_tax_MammifÃ¨res.shp',
-            'NAME': 'Mammifères'
         }
-        outputs['ChargerLaCoucheDansLeProjetMammif'] = processing.run('native:loadlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['BrancheConditionnelleAmphi'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(3)
         if feedback.isCanceled():
@@ -81,10 +79,41 @@ class Modle(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Branche conditionnelle amphi
+        # Branche conditionnelle oiseaux
         alg_params = {
         }
-        outputs['BrancheConditionnelleAmphi'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['BrancheConditionnelleOiseaux'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(5)
+        if feedback.isCanceled():
+            return {}
+
+        # Charger la couche dans le projet oiseaux
+        alg_params = {
+            'INPUT': 'C:/Users/lored/Documents/MNE/groupe_tax_Oiseaux.shp',
+            'NAME': 'Oiseaux'
+        }
+        outputs['ChargerLaCoucheDansLeProjetOiseaux'] = processing.run('native:loadlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(6)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle mammif
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleMammif'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(7)
+        if feedback.isCanceled():
+            return {}
+
+        # Charger la couche dans le projet mammif
+        alg_params = {
+            'INPUT': 'C:/Users/lored/Documents/MNE/groupe_tax_MammifÃ¨res.shp',
+            'NAME': 'Mammifères'
+        }
+        outputs['ChargerLaCoucheDansLeProjetMammif'] = processing.run('native:loadlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         return results
 
     def name(self):
