@@ -31,43 +31,14 @@ class Modle(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, model_feedback):
         # Use a multi-step feedback, so that individual child algorithm progress reports are adjusted for the
         # overall progress through the model
-        feedback = QgsProcessingMultiStepFeedback(28, model_feedback)
+        feedback = QgsProcessingMultiStepFeedback(31, model_feedback)
         results = {}
         outputs = {}
-
-        # Joindre les attributs par localisation
-        alg_params = {
-            'DISCARD_NONMATCHING': True,
-            'INPUT': parameters['couche'],
-            'JOIN': parameters['communes_mayenne'],
-            'JOIN_FIELDS': [''],
-            'METHOD': 0,  # Créer une entité distincte pour chaque entité correspondante (un à plusieurs)
-            'PREDICATE': [0],  # intersecte
-            'PREFIX': '',
-            'OUTPUT': parameters['Jointure']
-        }
-        outputs['JoindreLesAttributsParLocalisation'] = processing.run('native:joinattributesbylocation', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-        results['Jointure'] = outputs['JoindreLesAttributsParLocalisation']['OUTPUT']
-
-        feedback.setCurrentStep(1)
-        if feedback.isCanceled():
-            return {}
-
-        # Définir l'encodage de la couche
-        alg_params = {
-            'ENCODING': 'UTF-8',
-            'INPUT': outputs['JoindreLesAttributsParLocalisation']['OUTPUT']
-        }
-        outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
-        feedback.setCurrentStep(2)
-        if feedback.isCanceled():
-            return {}
 
         # Sauvegarder les entités vectorielles dans un fichier
         alg_params = {
             'DATASOURCE_OPTIONS': '',
-            'INPUT': outputs['JoindreLesAttributsParLocalisation']['OUTPUT'],
+            'INPUT': parameters['couche'],
             'LAYER_NAME': 'Données observation sauvegardées',
             'LAYER_OPTIONS': '',
             'OUTPUT': parameters['DonnesDobservationSauvegardes']
@@ -75,7 +46,7 @@ class Modle(QgsProcessingAlgorithm):
         outputs['SauvegarderLesEntitsVectoriellesDansUnFichier'] = processing.run('native:savefeatures', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         results['DonnesDobservationSauvegardes'] = outputs['SauvegarderLesEntitsVectoriellesDansUnFichier']['OUTPUT']
 
-        feedback.setCurrentStep(3)
+        feedback.setCurrentStep(1)
         if feedback.isCanceled():
             return {}
 
@@ -86,7 +57,57 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
+        feedback.setCurrentStep(2)
+        if feedback.isCanceled():
+            return {}
+
+        # Créer un index spatial
+        alg_params = {
+            'INPUT': outputs['SauvegarderLesEntitsVectoriellesDansUnFichier']['OUTPUT']
+        }
+        outputs['CrerUnIndexSpatial'] = processing.run('native:createspatialindex', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(3)
+        if feedback.isCanceled():
+            return {}
+
+        # Définir l'encodage de la couche
+        alg_params = {
+            'ENCODING': 'UTF-8',
+            'INPUT': outputs['CrerUnIndexSpatial']['OUTPUT']
+        }
+        outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
         feedback.setCurrentStep(4)
+        if feedback.isCanceled():
+            return {}
+
+        # Joindre les attributs par localisation
+        alg_params = {
+            'DISCARD_NONMATCHING': True,
+            'INPUT': outputs['CrerUnIndexSpatial']['OUTPUT'],
+            'JOIN': parameters['communes_mayenne'],
+            'JOIN_FIELDS': [''],
+            'METHOD': 0,  # Créer une entité distincte pour chaque entité correspondante (un à plusieurs)
+            'PREDICATE': [0],  # intersecte
+            'PREFIX': '',
+            'OUTPUT': parameters['Jointure']
+        }
+        outputs['JoindreLesAttributsParLocalisation'] = processing.run('native:joinattributesbylocation', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        results['Jointure'] = outputs['JoindreLesAttributsParLocalisation']['OUTPUT']
+
+        feedback.setCurrentStep(5)
+        if feedback.isCanceled():
+            return {}
+
+        # Définir l'encodage de la couche
+        alg_params = {
+            'ENCODING': 'UTF-8',
+            'INPUT': outputs['JoindreLesAttributsParLocalisation']['OUTPUT']
+        }
+        outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(6)
         if feedback.isCanceled():
             return {}
 
@@ -94,14 +115,14 @@ class Modle(QgsProcessingAlgorithm):
         alg_params = {
             'FIELD': QgsExpression(" 'groupe_tax' ").evaluate(),
             'FILE_TYPE': 1,  # shp
-            'INPUT': outputs['SauvegarderLesEntitsVectoriellesDansUnFichier']['OUTPUT'],
+            'INPUT': outputs['JoindreLesAttributsParLocalisation']['OUTPUT'],
             'PREFIX_FIELD': True,
             'OUTPUT': parameters['DossierMne']
         }
         outputs['SparerUneCoucheVecteur'] = processing.run('native:splitvectorlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         results['DossierMne'] = outputs['SparerUneCoucheVecteur']['OUTPUT']
 
-        feedback.setCurrentStep(5)
+        feedback.setCurrentStep(7)
         if feedback.isCanceled():
             return {}
 
@@ -110,7 +131,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleAmphi2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(6)
+        feedback.setCurrentStep(8)
         if feedback.isCanceled():
             return {}
 
@@ -119,7 +140,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleMammif'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(7)
+        feedback.setCurrentStep(9)
         if feedback.isCanceled():
             return {}
 
@@ -128,7 +149,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleAmphi'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(8)
+        feedback.setCurrentStep(10)
         if feedback.isCanceled():
             return {}
 
@@ -139,7 +160,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['ChargerLaCoucheDansLeProjetMammif'] = processing.run('native:loadlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(9)
+        feedback.setCurrentStep(11)
         if feedback.isCanceled():
             return {}
 
@@ -148,7 +169,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleOiseaux2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(10)
+        feedback.setCurrentStep(12)
         if feedback.isCanceled():
             return {}
 
@@ -159,7 +180,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(11)
+        feedback.setCurrentStep(13)
         if feedback.isCanceled():
             return {}
 
@@ -168,7 +189,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleMammif2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(12)
+        feedback.setCurrentStep(14)
         if feedback.isCanceled():
             return {}
 
@@ -179,7 +200,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['ChargerLaCoucheDansLeProjetAmphi'] = processing.run('native:loadlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(13)
+        feedback.setCurrentStep(15)
         if feedback.isCanceled():
             return {}
 
@@ -188,7 +209,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleOiseaux'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(14)
+        feedback.setCurrentStep(16)
         if feedback.isCanceled():
             return {}
 
@@ -199,7 +220,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['ChargerLaCoucheDansLeProjetOiseaux'] = processing.run('native:loadlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(15)
+        feedback.setCurrentStep(17)
         if feedback.isCanceled():
             return {}
 
@@ -210,7 +231,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['DfinirLeStyleDeLaCoucheAmphi'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(16)
+        feedback.setCurrentStep(18)
         if feedback.isCanceled():
             return {}
 
@@ -221,7 +242,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['DfinirLeStyleDeLaCoucheOiseaux'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(17)
+        feedback.setCurrentStep(19)
         if feedback.isCanceled():
             return {}
 
@@ -232,7 +253,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['DfinirLeStyleDeLaCoucheMammif'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(18)
+        feedback.setCurrentStep(20)
         if feedback.isCanceled():
             return {}
 
@@ -243,7 +264,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(19)
+        feedback.setCurrentStep(21)
         if feedback.isCanceled():
             return {}
 
@@ -255,7 +276,7 @@ class Modle(QgsProcessingAlgorithm):
         outputs['SuppressionDesDoublons1291Amphi'] = processing.run('script:Suppression_doublons1.1.1', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         results['SuppressionDesDoublonsAmphi'] = outputs['SuppressionDesDoublons1291Amphi']['OUTPUT_LAYER']
 
-        feedback.setCurrentStep(20)
+        feedback.setCurrentStep(22)
         if feedback.isCanceled():
             return {}
 
@@ -267,7 +288,18 @@ class Modle(QgsProcessingAlgorithm):
         outputs['SuppressionDesDoublons1291Mammif'] = processing.run('script:Suppression_doublons1.1.1', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         results['SuppressionDesDoublonsMammif'] = outputs['SuppressionDesDoublons1291Mammif']['OUTPUT_LAYER']
 
-        feedback.setCurrentStep(21)
+        feedback.setCurrentStep(23)
+        if feedback.isCanceled():
+            return {}
+
+        # Définir l'encodage de la couche
+        alg_params = {
+            'ENCODING': 'UTF-8',
+            'INPUT': outputs['SuppressionDesDoublons1291Mammif']['OUTPUT_LAYER']
+        }
+        outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(24)
         if feedback.isCanceled():
             return {}
 
@@ -279,7 +311,7 @@ class Modle(QgsProcessingAlgorithm):
         outputs['SuppressionDesDoublons1291Oiseaux'] = processing.run('script:Suppression_doublons1.1.1', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         results['SuppressionDesDoublonsOiseaux'] = outputs['SuppressionDesDoublons1291Oiseaux']['OUTPUT_LAYER']
 
-        feedback.setCurrentStep(22)
+        feedback.setCurrentStep(25)
         if feedback.isCanceled():
             return {}
 
@@ -290,7 +322,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(23)
+        feedback.setCurrentStep(26)
         if feedback.isCanceled():
             return {}
 
@@ -301,7 +333,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['DfinirLeStyleDeLaCoucheMammif2'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(24)
+        feedback.setCurrentStep(27)
         if feedback.isCanceled():
             return {}
 
@@ -312,7 +344,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(25)
+        feedback.setCurrentStep(28)
         if feedback.isCanceled():
             return {}
 
@@ -323,7 +355,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['DfinirLeStyleDeLaCoucheAmphi2'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(26)
+        feedback.setCurrentStep(29)
         if feedback.isCanceled():
             return {}
 
@@ -334,7 +366,7 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(27)
+        feedback.setCurrentStep(30)
         if feedback.isCanceled():
             return {}
 
