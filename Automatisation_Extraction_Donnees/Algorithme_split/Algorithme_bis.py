@@ -27,13 +27,24 @@ class Modle(QgsProcessingAlgorithm):
         self.addParameter(QgsProcessingParameterFeatureSink('SuppressionDesDoublonsOiseaux', 'Suppression des doublons oiseaux', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, defaultValue='C:/Users/lored/Documents/MNE/oiseaux_sans_doublon.shp'))
         self.addParameter(QgsProcessingParameterFeatureSink('SuppressionDesDoublonsAmphi', 'Suppression des doublons amphi', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, defaultValue='C:/Users/lored/Documents/MNE/amphi_sans_doublon.shp'))
         self.addParameter(QgsProcessingParameterFeatureSink('SuppressionDesDoublonsMammif', 'Suppression des doublons mammif', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, defaultValue='C:/Users/lored/Documents/MNE/mammif_sans_doublon.shp'))
+        self.addParameter(QgsProcessingParameterFeatureSink('SuppressionDesDoublonsReptiles', 'Suppression des doublons reptiles', type=QgsProcessing.TypeVectorAnyGeometry, createByDefault=True, defaultValue=None))
 
     def processAlgorithm(self, parameters, context, model_feedback):
         # Use a multi-step feedback, so that individual child algorithm progress reports are adjusted for the
         # overall progress through the model
-        feedback = QgsProcessingMultiStepFeedback(31, model_feedback)
+        feedback = QgsProcessingMultiStepFeedback(39, model_feedback)
         results = {}
         outputs = {}
+
+        # Créer un index spatial
+        alg_params = {
+            'INPUT': parameters['communes_mayenne']
+        }
+        outputs['CrerUnIndexSpatial'] = processing.run('native:createspatialindex', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(1)
+        if feedback.isCanceled():
+            return {}
 
         # Sauvegarder les entités vectorielles dans un fichier
         alg_params = {
@@ -46,26 +57,16 @@ class Modle(QgsProcessingAlgorithm):
         outputs['SauvegarderLesEntitsVectoriellesDansUnFichier'] = processing.run('native:savefeatures', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         results['DonnesDobservationSauvegardes'] = outputs['SauvegarderLesEntitsVectoriellesDansUnFichier']['OUTPUT']
 
-        feedback.setCurrentStep(1)
-        if feedback.isCanceled():
-            return {}
-
-        # Définir l'encodage de la couche
-        alg_params = {
-            'ENCODING': 'UTF-8',
-            'INPUT': outputs['SauvegarderLesEntitsVectoriellesDansUnFichier']['OUTPUT']
-        }
-        outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
         feedback.setCurrentStep(2)
         if feedback.isCanceled():
             return {}
 
-        # Créer un index spatial
+        # Définir l'encodage de la couche communes
         alg_params = {
-            'INPUT': outputs['SauvegarderLesEntitsVectoriellesDansUnFichier']['OUTPUT']
+            'ENCODING': 'UTF-8',
+            'INPUT': outputs['CrerUnIndexSpatial']['OUTPUT']
         }
-        outputs['CrerUnIndexSpatial'] = processing.run('native:createspatialindex', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['DfinirLencodageDeLaCoucheCommunes'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(3)
         if feedback.isCanceled():
@@ -74,7 +75,7 @@ class Modle(QgsProcessingAlgorithm):
         # Définir l'encodage de la couche
         alg_params = {
             'ENCODING': 'UTF-8',
-            'INPUT': outputs['CrerUnIndexSpatial']['OUTPUT']
+            'INPUT': outputs['SauvegarderLesEntitsVectoriellesDansUnFichier']['OUTPUT']
         }
         outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
@@ -85,8 +86,8 @@ class Modle(QgsProcessingAlgorithm):
         # Joindre les attributs par localisation
         alg_params = {
             'DISCARD_NONMATCHING': True,
-            'INPUT': outputs['CrerUnIndexSpatial']['OUTPUT'],
-            'JOIN': parameters['communes_mayenne'],
+            'INPUT': outputs['SauvegarderLesEntitsVectoriellesDansUnFichier']['OUTPUT'],
+            'JOIN': outputs['CrerUnIndexSpatial']['OUTPUT'],
             'JOIN_FIELDS': [''],
             'METHOD': 0,  # Créer une entité distincte pour chaque entité correspondante (un à plusieurs)
             'PREDICATE': [0],  # intersecte
@@ -126,21 +127,30 @@ class Modle(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Branche conditionnelle amphi 2
+        # Branche conditionnelle oiseaux 2
         alg_params = {
         }
-        outputs['BrancheConditionnelleAmphi2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['BrancheConditionnelleOiseaux2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(8)
         if feedback.isCanceled():
             return {}
 
-        # Branche conditionnelle mammif
+        # Branche conditionnelle reptiles 2 
         alg_params = {
         }
-        outputs['BrancheConditionnelleMammif'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['BrancheConditionnelleReptiles2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(9)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle mammif 2
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleMammif2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(10)
         if feedback.isCanceled():
             return {}
 
@@ -149,7 +159,25 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleAmphi'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(10)
+        feedback.setCurrentStep(11)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle oiseaux
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleOiseaux'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(12)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle mammif
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleMammif'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(13)
         if feedback.isCanceled():
             return {}
 
@@ -160,54 +188,23 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['ChargerLaCoucheDansLeProjetMammif'] = processing.run('native:loadlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(11)
-        if feedback.isCanceled():
-            return {}
-
-        # Branche conditionnelle oiseaux 2
-        alg_params = {
-        }
-        outputs['BrancheConditionnelleOiseaux2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
-        feedback.setCurrentStep(12)
-        if feedback.isCanceled():
-            return {}
-
-        # Définir l'encodage de la couche
-        alg_params = {
-            'ENCODING': 'UTF-8',
-            'INPUT': outputs['ChargerLaCoucheDansLeProjetMammif']['OUTPUT']
-        }
-        outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
-        feedback.setCurrentStep(13)
-        if feedback.isCanceled():
-            return {}
-
-        # Branche conditionnelle mammif 2
-        alg_params = {
-        }
-        outputs['BrancheConditionnelleMammif2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
         feedback.setCurrentStep(14)
         if feedback.isCanceled():
             return {}
 
-        # Charger la couche dans le projet amphi
+        # Branche conditionnelle reptiles
         alg_params = {
-            'INPUT': 'C:/Users/lored/Documents/MNE/groupe_tax_Amphibiens.shp',
-            'NAME': 'Amphibiens'
         }
-        outputs['ChargerLaCoucheDansLeProjetAmphi'] = processing.run('native:loadlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['BrancheConditionnelleReptiles'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(15)
         if feedback.isCanceled():
             return {}
 
-        # Branche conditionnelle oiseaux
+        # Branche conditionnelle amphi 2
         alg_params = {
         }
-        outputs['BrancheConditionnelleOiseaux'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['BrancheConditionnelleAmphi2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(16)
         if feedback.isCanceled():
@@ -224,25 +221,14 @@ class Modle(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
-        # Définir le style de la couche amphi
+        # Charger la couche dans le projet amphi
         alg_params = {
-            'INPUT': outputs['ChargerLaCoucheDansLeProjetAmphi']['OUTPUT'],
-            'STYLE': 'C:\\Users\\lored\\Documents\\MNE\\10-PROCEDURES EXTRACTION DONNEES\\10-PROCEDURES EXTRACTION DONNEES\\Synthèses générales\\STYLES\\Style_AUTRE FAUNE TOTALE.qml'
+            'INPUT': 'C:/Users/lored/Documents/MNE/groupe_tax_Amphibiens.shp',
+            'NAME': 'Amphibiens'
         }
-        outputs['DfinirLeStyleDeLaCoucheAmphi'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['ChargerLaCoucheDansLeProjetAmphi'] = processing.run('native:loadlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(18)
-        if feedback.isCanceled():
-            return {}
-
-        # Définir le style de la couche oiseaux
-        alg_params = {
-            'INPUT': outputs['ChargerLaCoucheDansLeProjetOiseaux']['OUTPUT'],
-            'STYLE': 'C:\\Users\\lored\\Documents\\MNE\\10-PROCEDURES EXTRACTION DONNEES\\10-PROCEDURES EXTRACTION DONNEES\\Synthèses générales\\STYLES\\Style_AVIFAUNE TOTALE.qml'
-        }
-        outputs['DfinirLeStyleDeLaCoucheOiseaux'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
-        feedback.setCurrentStep(19)
         if feedback.isCanceled():
             return {}
 
@@ -253,30 +239,84 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['DfinirLeStyleDeLaCoucheMammif'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(20)
+        feedback.setCurrentStep(19)
         if feedback.isCanceled():
             return {}
 
         # Définir l'encodage de la couche
         alg_params = {
             'ENCODING': 'UTF-8',
-            'INPUT': outputs['ChargerLaCoucheDansLeProjetAmphi']['OUTPUT']
+            'INPUT': outputs['ChargerLaCoucheDansLeProjetOiseaux']['OUTPUT']
         }
         outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(20)
+        if feedback.isCanceled():
+            return {}
+
+        # Charger la couche dans le projet reptiles
+        alg_params = {
+            'INPUT': 'C:/Users/lored/Documents/MNE/groupe_tax_Reptiles.shp',
+            'NAME': 'Reptiles'
+        }
+        outputs['ChargerLaCoucheDansLeProjetReptiles'] = processing.run('native:loadlayer', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(21)
         if feedback.isCanceled():
             return {}
 
-        # Suppression des doublons 1.29.1 amphi
+        # Définir l'encodage de la couche
         alg_params = {
-            'INPUT_LAYER': outputs['DfinirLeStyleDeLaCoucheAmphi']['OUTPUT'],
-            'OUTPUT_LAYER': parameters['SuppressionDesDoublonsAmphi']
+            'ENCODING': 'UTF-8',
+            'INPUT': outputs['ChargerLaCoucheDansLeProjetReptiles']['OUTPUT']
         }
-        outputs['SuppressionDesDoublons1291Amphi'] = processing.run('script:Suppression_doublons1.1.1', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-        results['SuppressionDesDoublonsAmphi'] = outputs['SuppressionDesDoublons1291Amphi']['OUTPUT_LAYER']
+        outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(22)
+        if feedback.isCanceled():
+            return {}
+
+        # Définir le style de la couche oiseaux
+        alg_params = {
+            'INPUT': outputs['ChargerLaCoucheDansLeProjetOiseaux']['OUTPUT'],
+            'STYLE': 'C:\\Users\\lored\\Documents\\MNE\\10-PROCEDURES EXTRACTION DONNEES\\10-PROCEDURES EXTRACTION DONNEES\\Synthèses générales\\STYLES\\Style_AVIFAUNE TOTALE.qml'
+        }
+        outputs['DfinirLeStyleDeLaCoucheOiseaux'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(23)
+        if feedback.isCanceled():
+            return {}
+
+        # Définir l'encodage de la couche
+        alg_params = {
+            'ENCODING': 'UTF-8',
+            'INPUT': outputs['ChargerLaCoucheDansLeProjetMammif']['OUTPUT']
+        }
+        outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(24)
+        if feedback.isCanceled():
+            return {}
+
+        # Définir le style de la couche amphi
+        alg_params = {
+            'INPUT': outputs['ChargerLaCoucheDansLeProjetAmphi']['OUTPUT'],
+            'STYLE': 'C:\\Users\\lored\\Documents\\MNE\\10-PROCEDURES EXTRACTION DONNEES\\10-PROCEDURES EXTRACTION DONNEES\\Synthèses générales\\STYLES\\Style_AUTRE FAUNE TOTALE.qml'
+        }
+        outputs['DfinirLeStyleDeLaCoucheAmphi'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(25)
+        if feedback.isCanceled():
+            return {}
+
+        # Définir le style de la couche reptiles
+        alg_params = {
+            'INPUT': outputs['ChargerLaCoucheDansLeProjetReptiles']['OUTPUT'],
+            'STYLE': 'C:\\Users\\lored\\Documents\\MNE\\10-PROCEDURES EXTRACTION DONNEES\\10-PROCEDURES EXTRACTION DONNEES\\Synthèses générales\\STYLES\\Style_AUTRE FAUNE TOTALE.qml'
+        }
+        outputs['DfinirLeStyleDeLaCoucheReptiles'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(26)
         if feedback.isCanceled():
             return {}
 
@@ -288,7 +328,18 @@ class Modle(QgsProcessingAlgorithm):
         outputs['SuppressionDesDoublons1291Mammif'] = processing.run('script:Suppression_doublons1.1.1', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         results['SuppressionDesDoublonsMammif'] = outputs['SuppressionDesDoublons1291Mammif']['OUTPUT_LAYER']
 
-        feedback.setCurrentStep(23)
+        feedback.setCurrentStep(27)
+        if feedback.isCanceled():
+            return {}
+
+        # Définir l'encodage de la couche
+        alg_params = {
+            'ENCODING': 'UTF-8',
+            'INPUT': outputs['ChargerLaCoucheDansLeProjetAmphi']['OUTPUT']
+        }
+        outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(28)
         if feedback.isCanceled():
             return {}
 
@@ -299,7 +350,30 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(24)
+        feedback.setCurrentStep(29)
+        if feedback.isCanceled():
+            return {}
+
+        # Définir le style de la couche mammif 2
+        alg_params = {
+            'INPUT': outputs['SuppressionDesDoublons1291Mammif']['OUTPUT_LAYER'],
+            'STYLE': 'C:\\Users\\lored\\Documents\\MNE\\10-PROCEDURES EXTRACTION DONNEES\\10-PROCEDURES EXTRACTION DONNEES\\Synthèses générales\\STYLES\\Style_MAMMIFERES_PATRIMONIAUX_MAJ.qml'
+        }
+        outputs['DfinirLeStyleDeLaCoucheMammif2'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(30)
+        if feedback.isCanceled():
+            return {}
+
+        # Suppression des doublons 1.29.1 reptiles
+        alg_params = {
+            'INPUT_LAYER': outputs['DfinirLeStyleDeLaCoucheReptiles']['OUTPUT'],
+            'OUTPUT_LAYER': parameters['SuppressionDesDoublonsReptiles']
+        }
+        outputs['SuppressionDesDoublons1291Reptiles'] = processing.run('script:Suppression_doublons1.1.1', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        results['SuppressionDesDoublonsReptiles'] = outputs['SuppressionDesDoublons1291Reptiles']['OUTPUT_LAYER']
+
+        feedback.setCurrentStep(31)
         if feedback.isCanceled():
             return {}
 
@@ -311,51 +385,7 @@ class Modle(QgsProcessingAlgorithm):
         outputs['SuppressionDesDoublons1291Oiseaux'] = processing.run('script:Suppression_doublons1.1.1', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         results['SuppressionDesDoublonsOiseaux'] = outputs['SuppressionDesDoublons1291Oiseaux']['OUTPUT_LAYER']
 
-        feedback.setCurrentStep(25)
-        if feedback.isCanceled():
-            return {}
-
-        # Définir l'encodage de la couche
-        alg_params = {
-            'ENCODING': 'UTF-8',
-            'INPUT': outputs['ChargerLaCoucheDansLeProjetOiseaux']['OUTPUT']
-        }
-        outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
-        feedback.setCurrentStep(26)
-        if feedback.isCanceled():
-            return {}
-
-        # Définir le style de la couche mammif 2
-        alg_params = {
-            'INPUT': outputs['SuppressionDesDoublons1291Mammif']['OUTPUT_LAYER'],
-            'STYLE': 'C:\\Users\\lored\\Documents\\MNE\\10-PROCEDURES EXTRACTION DONNEES\\10-PROCEDURES EXTRACTION DONNEES\\Synthèses générales\\STYLES\\Style_MAMMIFERES_PATRIMONIAUX_MAJ.qml'
-        }
-        outputs['DfinirLeStyleDeLaCoucheMammif2'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
-        feedback.setCurrentStep(27)
-        if feedback.isCanceled():
-            return {}
-
-        # Définir l'encodage de la couche
-        alg_params = {
-            'ENCODING': 'UTF-8',
-            'INPUT': outputs['SuppressionDesDoublons1291Amphi']['OUTPUT_LAYER']
-        }
-        outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
-        feedback.setCurrentStep(28)
-        if feedback.isCanceled():
-            return {}
-
-        # Définir le style de la couche amphi 2
-        alg_params = {
-            'INPUT': outputs['SuppressionDesDoublons1291Amphi']['OUTPUT_LAYER'],
-            'STYLE': 'C:\\Users\\lored\\Documents\\MNE\\10-PROCEDURES EXTRACTION DONNEES\\10-PROCEDURES EXTRACTION DONNEES\\Synthèses générales\\STYLES\\Style_AMPHIBIENS_PATRIMONIAUX_maj2024.qml'
-        }
-        outputs['DfinirLeStyleDeLaCoucheAmphi2'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
-        feedback.setCurrentStep(29)
+        feedback.setCurrentStep(32)
         if feedback.isCanceled():
             return {}
 
@@ -366,7 +396,41 @@ class Modle(QgsProcessingAlgorithm):
         }
         outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(30)
+        feedback.setCurrentStep(33)
+        if feedback.isCanceled():
+            return {}
+
+        # Définir le style de la couche reptiles 2 
+        alg_params = {
+            'INPUT': outputs['SuppressionDesDoublons1291Reptiles']['OUTPUT_LAYER'],
+            'STYLE': 'C:\\Users\\lored\\Documents\\MNE\\10-PROCEDURES EXTRACTION DONNEES\\10-PROCEDURES EXTRACTION DONNEES\\Synthèses générales\\STYLES\\Style_REPTILES_PATRIMONIAUX_MAJ.qml'
+        }
+        outputs['DfinirLeStyleDeLaCoucheReptiles2'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(34)
+        if feedback.isCanceled():
+            return {}
+
+        # Suppression des doublons 1.29.1 amphi
+        alg_params = {
+            'INPUT_LAYER': outputs['DfinirLeStyleDeLaCoucheAmphi']['OUTPUT'],
+            'OUTPUT_LAYER': parameters['SuppressionDesDoublonsAmphi']
+        }
+        outputs['SuppressionDesDoublons1291Amphi'] = processing.run('script:Suppression_doublons1.1.1', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        results['SuppressionDesDoublonsAmphi'] = outputs['SuppressionDesDoublons1291Amphi']['OUTPUT_LAYER']
+
+        feedback.setCurrentStep(35)
+        if feedback.isCanceled():
+            return {}
+
+        # Définir l'encodage de la couche
+        alg_params = {
+            'ENCODING': 'UTF-8',
+            'INPUT': outputs['SuppressionDesDoublons1291Reptiles']['OUTPUT_LAYER']
+        }
+        outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(36)
         if feedback.isCanceled():
             return {}
 
@@ -376,6 +440,28 @@ class Modle(QgsProcessingAlgorithm):
             'STYLE': 'C:\\Users\\lored\\Documents\\MNE\\10-PROCEDURES EXTRACTION DONNEES\\10-PROCEDURES EXTRACTION DONNEES\\Synthèses générales\\STYLES\\Style_AVIFAUNE_PATRIMONIALE_NICHEUSE_MAJ2024.qml'
         }
         outputs['DfinirLeStyleDeLaCoucheOiseaux2'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(37)
+        if feedback.isCanceled():
+            return {}
+
+        # Définir l'encodage de la couche
+        alg_params = {
+            'ENCODING': 'UTF-8',
+            'INPUT': outputs['SuppressionDesDoublons1291Amphi']['OUTPUT_LAYER']
+        }
+        outputs['DfinirLencodageDeLaCouche'] = processing.run('native:setlayerencoding', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(38)
+        if feedback.isCanceled():
+            return {}
+
+        # Définir le style de la couche amphi 2
+        alg_params = {
+            'INPUT': outputs['SuppressionDesDoublons1291Amphi']['OUTPUT_LAYER'],
+            'STYLE': 'C:\\Users\\lored\\Documents\\MNE\\10-PROCEDURES EXTRACTION DONNEES\\10-PROCEDURES EXTRACTION DONNEES\\Synthèses générales\\STYLES\\Style_AMPHIBIENS_PATRIMONIAUX_maj2024.qml'
+        }
+        outputs['DfinirLeStyleDeLaCoucheAmphi2'] = processing.run('native:setlayerstyle', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
         return results
 
     def name(self):
