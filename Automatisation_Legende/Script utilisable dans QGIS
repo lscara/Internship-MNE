@@ -1,0 +1,94 @@
+from qgis.core import (QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterVectorLayer, QgsProcessingParameterField, QgsProcessingParameterFile, QgsCategorizedSymbolRenderer, QgsRendererCategory, QgsMarkerSymbol, QgsSimpleMarkerSymbolLayer)
+from PyQt5.QtGui import QColor
+import random
+import json
+
+class CustomSymbolizer(QgsProcessingAlgorithm):
+    INPUT_LAYER = 'INPUT_LAYER'
+    FIELD = 'FIELD'
+    JSON_FILE = 'JSON_FILE'
+
+    def initAlgorithm(self, config=None):
+        self.addParameter(QgsProcessingParameterVectorLayer(
+            self.INPUT_LAYER,
+            'Input layer',
+            [QgsProcessing.TypeVectorAnyGeometry]
+        ))
+        self.addParameter(QgsProcessingParameterField(
+            self.FIELD,
+            'Field for categorization',
+            None,
+            self.INPUT_LAYER,
+            QgsProcessingParameterField.Any
+        ))
+        self.addParameter(QgsProcessingParameterFile(
+            self.JSON_FILE,
+            'JSON File for Color Mapping',
+            extension='json'
+        ))
+
+    def processAlgorithm(self, parameters, context, feedback):
+        input_layer = self.parameterAsVectorLayer(parameters, self.INPUT_LAYER, context)
+        categorization_field = self.parameterAsString(parameters, self.FIELD, context)
+        json_file_path = self.parameterAsString(parameters, self.JSON_FILE, context)
+        
+        # Chargement des mappages des couleurs depuis le fichier JSON
+        with open(json_file_path, 'r') as file:
+            patrimonial_species_color_mapping = json.load(file)
+
+        # Liste des formes disponibles
+        shapes = [
+            QgsSimpleMarkerSymbolLayer.Circle,
+            QgsSimpleMarkerSymbolLayer.Square,
+            QgsSimpleMarkerSymbolLayer.Diamond,
+            QgsSimpleMarkerSymbolLayer.Pentagon,
+            QgsSimpleMarkerSymbolLayer.Hexagon,
+            QgsSimpleMarkerSymbolLayer.Triangle,
+            QgsSimpleMarkerSymbolLayer.Star,
+            QgsSimpleMarkerSymbolLayer.Cross,
+            QgsSimpleMarkerSymbolLayer.Arrow,
+            QgsSimpleMarkerSymbolLayer.LeftHalfTriangle,
+            QgsSimpleMarkerSymbolLayer.QuarterCircle
+        ]
+
+        # Initialisation du compteur pour chaque forme
+        shape_usage_count = {shape: 0 for shape in shapes}
+
+        # Configuration du rendu catégorisé
+        categories = []
+        for species, color in patrimonial_species_color_mapping.items():
+            symbol = QgsMarkerSymbol.createSimple({'shape': 'circle', 'color': color})
+            available_shapes = [shape for shape, count in shape_usage_count.items() if count < 40]
+
+            if available_shapes:
+                shape = random.choice(available_shapes)
+                symbol.symbolLayer(0).setShape(shape)
+                shape_usage_count[shape] += 1
+            else:
+                feedback.pushInfo("Toutes les formes ont atteint leur limite d'utilisation. Veuillez ajouter plus de formes.")
+
+            category = QgsRendererCategory(species, symbol, species)
+            categories.append(category)
+
+        renderer = QgsCategorizedSymbolRenderer(categorization_field, categories)
+        input_layer.setRenderer(renderer)
+
+        # Rafraîchissement de la couche pour appliquer le nouveau rendu
+        input_layer.triggerRepaint()
+
+        return {}
+
+    def name(self):
+        return 'automatisation_symbologie'
+
+    def displayName(self):
+        return 'Automatisation de la symbologie'
+
+    def group(self):
+        return 'Mes Scripts Personnalisés'
+
+    def groupId(self):
+        return 'mesScriptsPersonnalises'
+
+    def createInstance(self):
+        return CustomSymbolizer()
