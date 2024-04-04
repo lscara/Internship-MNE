@@ -33,7 +33,7 @@ class RemoveDuplicateFeaturesAlgorithm(QgsProcessingAlgorithm):
         for current, feature in enumerate(input_layer.getFeatures()):
             if feedback.isCanceled():
                 break
-            key = (feature['nom_vern'], feature['NOM'])
+            key = (feature['nom_vern'], feature['NOM'], feature['place'])
             if key not in unique_combinations:
                 unique_combinations[key] = feature
                 output_layer_data.addFeature(feature)
@@ -51,10 +51,10 @@ class RemoveDuplicateFeaturesAlgorithm(QgsProcessingAlgorithm):
     
 
     def name(self):
-        return 'Suppression_doublons1.1.1'
+        return 'Suppression_doublons'
 
     def displayName(self):
-        return 'Suppression des doublons 1.29.1'
+        return 'Suppression des doublons'
 
     def group(self):
         return 'Mes Scripts Personnalisés'
