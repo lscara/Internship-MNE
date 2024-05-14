@@ -1,6 +1,6 @@
 """
 Model exported as python.
-Name : Exportation atlas tous taxons v3
+Name : Exportation des Atlas finalisé
 Group : 
 With QGIS : 32808
 """
@@ -9,58 +9,67 @@ from qgis.core import QgsProcessing
 from qgis.core import QgsProcessingAlgorithm
 from qgis.core import QgsProcessingMultiStepFeedback
 from qgis.core import QgsProcessingParameterVectorLayer
+from qgis.core import QgsProcessingParameterFile
 from qgis.core import QgsProcessingParameterRasterLayer
 import processing
 
 
-class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
+class ExportationDesAtlasFinalis(QgsProcessingAlgorithm):
 
     def initAlgorithm(self, config=None):
         self.addParameter(QgsProcessingParameterVectorLayer('couche_de_couverture', 'Couche de couverture', types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_amphi', 'Couche dynamique amphi', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_amphi_2', 'Couche dynamique amphi 2 ', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_chiroptres', 'Couche dynamique chiroptères', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_coloptres', 'Couche dynamique coléoptères', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_coloptres_2', 'Couche dynamique coléoptères 2', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_htrocres', 'Couche dynamique hétérocères', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_htrocres_2', 'Couche dynamique hétérocères 2', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_mammif', 'Couche dynamique mammif', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_mammif_2', 'Couche dynamique mammif 2 ', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_odonates', 'Couche dynamique odonates', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_odonates_2', 'Couche dynamique odonates 2', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_oiseaux', 'Couche dynamique oiseaux', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_oiseaux_2', 'Couche dynamique oiseaux 2', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_orthoptres', 'Couche dynamique orthoptères', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_orthoptres_2', 'Couche dynamique orthoptères 2', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_reptiles', 'Couche dynamique reptiles', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_reptiles_2', 'Couche dynamique reptiles 2 ', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_rhopalocres', 'Couche dynamique rhopalocères', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
-        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_rhopalocres_2', 'Couche dynamique rhopalocères 2', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_amphibiens', 'Couche dynamique "Amphibiens"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_amphibiens_patrimoniaux', 'Couche dynamique "Amphibiens patrimoniaux"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_chiroptres', 'Couche dynamique "Chiroptères"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_coloptres', 'Couche dynamique "Coléoptères"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_coloptres_patrimoniaux', 'Couche dynamique "Coléoptères patrimoniaux"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_htrocres', 'Couche dynamique "Hétérocères"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_htrocres_patrimoniaux', 'Couche dynamique "Hétérocères patrimoniaux"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_mammifres', 'Couche dynamique "Mammifères"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_mammifres_patrimoniaux', 'Couche dynamique "Mammifères patrimoniaux"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_odonates', 'Couche dynamique "Odonates"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_odonates_patrimoniaux', 'Couche dynamique "Odonates patrimoniaux"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_oiseaux', 'Couche dynamique "Oiseaux"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_oiseaux_des_milieux_agricoles', 'Couche dynamique "Oiseaux des milieux agricoles"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_oiseaux_des_zones_humides', 'Couche dynamique "Oiseaux des zones humides"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_oiseaux_du_bti', 'Couche dynamique "Oiseaux du bâti"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_oiseaux_forestiers', 'Couche dynamique "Oiseaux forestiers"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_oiseaux_marins', 'Couche dynamique "Oiseaux marins"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_orthoptres', 'Couche dynamique "Orthoptères"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_orthoptres_patrimoniaux', 'Couche dynamique "Orthoptères patrimoniaux"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_rapaces', 'Couche dynamique "Rapaces"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_reptiles', 'Couche dynamique "Reptiles"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_reptiles_patrimoniaux', 'Couche dynamique "Reptiles patrimoniaux"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_rhopalocres', 'Couche dynamique "Rhopalocères"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterVectorLayer('couche_dynamique_rhopalocres_patrimoniaux', 'Couche dynamique "Rhopalocères patrimoniaux"', optional=True, types=[QgsProcessing.TypeVectorAnyGeometry], defaultValue=None))
+        self.addParameter(QgsProcessingParameterFile('dossier_atlas', 'Dossier atlas', behavior=QgsProcessingParameterFile.Folder, fileFilter='Tous les fichiers (*.*)', defaultValue=None))
+        self.addParameter(QgsProcessingParameterFile('dossier_contenant_les_mises_en_page', 'Dossier contenant les mises en page', optional=True, behavior=QgsProcessingParameterFile.Folder, fileFilter='Tous les fichiers (*.*)', defaultValue=None))
         self.addParameter(QgsProcessingParameterRasterLayer('raster', 'Raster', defaultValue=None))
 
     def processAlgorithm(self, parameters, context, model_feedback):
         # Use a multi-step feedback, so that individual child algorithm progress reports are adjusted for the
         # overall progress through the model
-        feedback = QgsProcessingMultiStepFeedback(44, model_feedback)
+        feedback = QgsProcessingMultiStepFeedback(65, model_feedback)
         results = {}
         outputs = {}
 
-        # Activer la couche mammif patri
+        # Charger les mises en page depuis un dossier
         alg_params = {
-            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_mammif'],
-            'COUCHE_PERMANENTE_RASTER': parameters['raster'],
-            'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
+            'FOLDER': parameters['dossier_contenant_les_mises_en_page']
         }
-        outputs['ActiverLaCoucheMammifPatri'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['ChargerLesMisesEnPageDepuisUnDossier'] = processing.run('script:Charger_les_mises_en_page_depuis_un_dossier', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(1)
         if feedback.isCanceled():
             return {}
 
-        # Branche conditionnelle mammif
+        # Activer la couche mammif patri
         alg_params = {
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_mammifres_patrimoniaux'],
+            'COUCHE_PERMANENTE_RASTER': parameters['raster'],
+            'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
         }
-        outputs['BrancheConditionnelleMammif'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['ActiverLaCoucheMammifPatri'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(2)
         if feedback.isCanceled():
@@ -75,16 +84,25 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         if feedback.isCanceled():
             return {}
 
+        # Branche conditionnelle mammif
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleMammif'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(4)
+        if feedback.isCanceled():
+            return {}
+
         # Exporter l'Atlas au format image mammif patri
         alg_params = {
             'ANTIALIAS': True,
             'COVERAGE_LAYER': parameters['couche_de_couverture'],
             'DPI': None,
             'EXTENSION': 8,  # png
-            'FILENAME_EXPRESSION': "'Localisation des espèces de mammifères patrimoniaux'||@atlas_featurenumber",
+            'FILENAME_EXPRESSION': "'Localisation_des_espèces_de_mammifères_patrimoniaux'||@atlas_featurenumber",
             'FILTER_EXPRESSION': '',
-            'FOLDER': 'C:\\Users\\lored\\Documents',
-            'GEOREFERENCE': True,
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
             'INCLUDE_METADATA': True,
             'LAYERS': None,
             'LAYOUT': 'Modèle_mammif_patrimoniaux',
@@ -93,71 +111,331 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['ExporterLatlasAuFormatImageMammifPatri'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(4)
-        if feedback.isCanceled():
-            return {}
-
-        # Activer la couche oiseaux patri
-        alg_params = {
-            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_oiseaux'],
-            'COUCHE_PERMANENTE_RASTER': parameters['raster'],
-            'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
-        }
-        outputs['ActiverLaCoucheOiseauxPatri'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
         feedback.setCurrentStep(5)
         if feedback.isCanceled():
             return {}
 
-        # Branche conditionnelle oiseaux
+        # Activer la couche oiseaux milieux agricoles
         alg_params = {
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_oiseaux_des_milieux_agricoles'],
+            'COUCHE_PERMANENTE_RASTER': parameters['raster'],
+            'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
         }
-        outputs['BrancheConditionnelleOiseaux'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['ActiverLaCoucheOiseauxMilieuxAgricoles'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(6)
         if feedback.isCanceled():
             return {}
 
-        # Exporter l'Atlas au format image oiseaux patri
+        # Branche conditionnelle oiseaux milieux agricoles
         alg_params = {
-            'ANTIALIAS': True,
-            'COVERAGE_LAYER': parameters['couche_de_couverture'],
-            'DPI': None,
-            'EXTENSION': 8,  # png
-            'FILENAME_EXPRESSION': "'Localisation des espèces doiseaux patrimoniaux'||@atlas_featurenumber",
-            'FILTER_EXPRESSION': '',
-            'FOLDER': 'C:\\Users\\lored\\Documents',
-            'GEOREFERENCE': True,
-            'INCLUDE_METADATA': True,
-            'LAYERS': None,
-            'LAYOUT': 'Modèle_oiseaux_patrimoniaux',
-            'SORTBY_EXPRESSION': '',
-            'SORTBY_REVERSE': False
         }
-        outputs['ExporterLatlasAuFormatImageOiseauxPatri'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['BrancheConditionnelleOiseauxMilieuxAgricoles'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(7)
         if feedback.isCanceled():
             return {}
 
-        # Branche conditionnelle oiseaux 2 
+        # Branche conditionnelle oiseaux milieux agricoles 2
         alg_params = {
         }
-        outputs['BrancheConditionnelleOiseaux2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['BrancheConditionnelleOiseauxMilieuxAgricoles2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
         feedback.setCurrentStep(8)
         if feedback.isCanceled():
             return {}
 
+        # Exporter l'Atlas au format image oiseaux milieux agricoles
+        alg_params = {
+            'ANTIALIAS': True,
+            'COVERAGE_LAYER': parameters['couche_de_couverture'],
+            'DPI': None,
+            'EXTENSION': 8,  # png
+            'FILENAME_EXPRESSION': "'Localisation_des_espèces_doiseaux_patrimoniaux_milieux_agricoles'||@atlas_featurenumber",
+            'FILTER_EXPRESSION': '',
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
+            'INCLUDE_METADATA': True,
+            'LAYERS': None,
+            'LAYOUT': 'Modèle_oiseaux_agricoles',
+            'SORTBY_EXPRESSION': '',
+            'SORTBY_REVERSE': False
+        }
+        outputs['ExporterLatlasAuFormatImageOiseauxMilieuxAgricoles'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(9)
+        if feedback.isCanceled():
+            return {}
+
+        # Activer la couche oiseaux milieux humides
+        alg_params = {
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_oiseaux_des_zones_humides'],
+            'COUCHE_PERMANENTE_RASTER': parameters['raster'],
+            'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
+        }
+        outputs['ActiverLaCoucheOiseauxMilieuxHumides'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(10)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle oiseaux milieux humides
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleOiseauxMilieuxHumides'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(11)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle oiseaux milieux humides 2
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleOiseauxMilieuxHumides2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(12)
+        if feedback.isCanceled():
+            return {}
+
+        # Exporter l'Atlas au format image oiseaux milieux humides
+        alg_params = {
+            'ANTIALIAS': True,
+            'COVERAGE_LAYER': parameters['couche_de_couverture'],
+            'DPI': None,
+            'EXTENSION': 8,  # png
+            'FILENAME_EXPRESSION': "'Localisation_des_espèces_doiseaux_patrimoniaux_milieux_humides'||@atlas_featurenumber",
+            'FILTER_EXPRESSION': '',
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
+            'INCLUDE_METADATA': True,
+            'LAYERS': None,
+            'LAYOUT': 'Modèle_oiseaux_humides',
+            'SORTBY_EXPRESSION': '',
+            'SORTBY_REVERSE': False
+        }
+        outputs['ExporterLatlasAuFormatImageOiseauxMilieuxHumides'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(13)
+        if feedback.isCanceled():
+            return {}
+
+        # Activer la couche oiseaux marins
+        alg_params = {
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_oiseaux_marins'],
+            'COUCHE_PERMANENTE_RASTER': parameters['raster'],
+            'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
+        }
+        outputs['ActiverLaCoucheOiseauxMarins'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(14)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle oiseaux marins
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleOiseauxMarins'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(15)
+        if feedback.isCanceled():
+            return {}
+
+        # Exporter l'Atlas au format image oiseaux marins
+        alg_params = {
+            'ANTIALIAS': True,
+            'COVERAGE_LAYER': parameters['couche_de_couverture'],
+            'DPI': None,
+            'EXTENSION': 8,  # png
+            'FILENAME_EXPRESSION': "'Localisation_des_espèces_doiseaux_patrimoniaux_marins'||@atlas_featurenumber",
+            'FILTER_EXPRESSION': '',
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
+            'INCLUDE_METADATA': True,
+            'LAYERS': None,
+            'LAYOUT': 'Modèle_oiseaux_marins',
+            'SORTBY_EXPRESSION': '',
+            'SORTBY_REVERSE': False
+        }
+        outputs['ExporterLatlasAuFormatImageOiseauxMarins'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(16)
+        if feedback.isCanceled():
+            return {}
+
+        # Activer la couche oiseaux bâti
+        alg_params = {
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_oiseaux_du_bti'],
+            'COUCHE_PERMANENTE_RASTER': parameters['raster'],
+            'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
+        }
+        outputs['ActiverLaCoucheOiseauxBti'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(17)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle oiseaux bâti
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleOiseauxBti'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(18)
+        if feedback.isCanceled():
+            return {}
+
+        # Exporter l'Atlas au format image oiseaux bâti
+        alg_params = {
+            'ANTIALIAS': True,
+            'COVERAGE_LAYER': parameters['couche_de_couverture'],
+            'DPI': None,
+            'EXTENSION': 8,  # png
+            'FILENAME_EXPRESSION': "'Localisation_des_espèces_doiseaux_patrimoniaux_du_bâti'||@atlas_featurenumber",
+            'FILTER_EXPRESSION': '',
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
+            'INCLUDE_METADATA': True,
+            'LAYERS': None,
+            'LAYOUT': 'Modèle_oiseaux_bâti',
+            'SORTBY_EXPRESSION': '',
+            'SORTBY_REVERSE': False
+        }
+        outputs['ExporterLatlasAuFormatImageOiseauxBti'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(19)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle oiseaux marins 2
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleOiseauxMarins2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(20)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle oiseaux bâti 2
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleOiseauxBti2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(21)
+        if feedback.isCanceled():
+            return {}
+
+        # Activer la couche oiseaux milieux forestiers
+        alg_params = {
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_oiseaux_forestiers'],
+            'COUCHE_PERMANENTE_RASTER': parameters['raster'],
+            'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
+        }
+        outputs['ActiverLaCoucheOiseauxMilieuxForestiers'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(22)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle oiseaux milieux forestiers 2
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleOiseauxMilieuxForestiers2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(23)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle oiseaux milieux forestiers
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleOiseauxMilieuxForestiers'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(24)
+        if feedback.isCanceled():
+            return {}
+
+        # Exporter l'Atlas au format image oiseaux milieux forestiers
+        alg_params = {
+            'ANTIALIAS': True,
+            'COVERAGE_LAYER': parameters['couche_de_couverture'],
+            'DPI': None,
+            'EXTENSION': 8,  # png
+            'FILENAME_EXPRESSION': "'Localisation_des_espèces_doiseaux_patrimoniaux_milieux_forestiers'||@atlas_featurenumber",
+            'FILTER_EXPRESSION': '',
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
+            'INCLUDE_METADATA': True,
+            'LAYERS': None,
+            'LAYOUT': 'Modèle_oiseaux_forestiers',
+            'SORTBY_EXPRESSION': '',
+            'SORTBY_REVERSE': False
+        }
+        outputs['ExporterLatlasAuFormatImageOiseauxMilieuxForestiers'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(25)
+        if feedback.isCanceled():
+            return {}
+
+        # Activer la couche rapaces
+        alg_params = {
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_rapaces'],
+            'COUCHE_PERMANENTE_RASTER': parameters['raster'],
+            'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
+        }
+        outputs['ActiverLaCoucheRapaces'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(26)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle rapaces 2 
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleRapaces2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(27)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle rapaces
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleRapaces'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(28)
+        if feedback.isCanceled():
+            return {}
+
+        # Exporter l'Atlas au format image rapaces
+        alg_params = {
+            'ANTIALIAS': True,
+            'COVERAGE_LAYER': parameters['couche_de_couverture'],
+            'DPI': None,
+            'EXTENSION': 8,  # png
+            'FILENAME_EXPRESSION': "'Localisation_des_rapaces_patrimoniaux'||@atlas_featurenumber",
+            'FILTER_EXPRESSION': '',
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
+            'INCLUDE_METADATA': True,
+            'LAYERS': None,
+            'LAYOUT': 'Modèle_rapaces',
+            'SORTBY_EXPRESSION': '',
+            'SORTBY_REVERSE': False
+        }
+        outputs['ExporterLatlasAuFormatImageRapaces'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(29)
+        if feedback.isCanceled():
+            return {}
+
         # Activer la couche reptiles patri
         alg_params = {
-            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_reptiles'],
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_reptiles_patrimoniaux'],
             'COUCHE_PERMANENTE_RASTER': parameters['raster'],
             'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
         }
         outputs['ActiverLaCoucheReptilesPatri'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(9)
+        feedback.setCurrentStep(30)
         if feedback.isCanceled():
             return {}
 
@@ -166,7 +444,7 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleReptiles2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(10)
+        feedback.setCurrentStep(31)
         if feedback.isCanceled():
             return {}
 
@@ -175,7 +453,7 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleReptiles'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(11)
+        feedback.setCurrentStep(32)
         if feedback.isCanceled():
             return {}
 
@@ -185,10 +463,10 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
             'COVERAGE_LAYER': parameters['couche_de_couverture'],
             'DPI': None,
             'EXTENSION': 8,  # png
-            'FILENAME_EXPRESSION': "'Localisation des espèces de reptiles patrimoniaux'||@atlas_featurenumber",
+            'FILENAME_EXPRESSION': "'Localisation_des_espèces_de_reptiles_patrimoniaux'||@atlas_featurenumber",
             'FILTER_EXPRESSION': '',
-            'FOLDER': 'C:\\Users\\lored\\Documents',
-            'GEOREFERENCE': True,
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
             'INCLUDE_METADATA': True,
             'LAYERS': None,
             'LAYOUT': 'Modèle_reptiles_patrimoniaux',
@@ -197,19 +475,19 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['ExporterLatlasAuFormatImageReptilesPatri'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(12)
+        feedback.setCurrentStep(33)
         if feedback.isCanceled():
             return {}
 
         # Activer la couche amphi patri
         alg_params = {
-            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_amphi'],
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_amphibiens_patrimoniaux'],
             'COUCHE_PERMANENTE_RASTER': parameters['raster'],
             'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
         }
         outputs['ActiverLaCoucheAmphiPatri'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(13)
+        feedback.setCurrentStep(34)
         if feedback.isCanceled():
             return {}
 
@@ -218,7 +496,16 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleAmphi'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(14)
+        feedback.setCurrentStep(35)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle amphi 2
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleAmphi2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(36)
         if feedback.isCanceled():
             return {}
 
@@ -228,10 +515,10 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
             'COVERAGE_LAYER': parameters['couche_de_couverture'],
             'DPI': None,
             'EXTENSION': 8,  # png
-            'FILENAME_EXPRESSION': "'Localisation des espèces damphibiens patrimoniaux'||@atlas_featurenumber",
+            'FILENAME_EXPRESSION': "'Localisation_des_espèces_damphibiens_patrimoniaux'||@atlas_featurenumber",
             'FILTER_EXPRESSION': '',
-            'FOLDER': 'C:\\Users\\lored\\Documents',
-            'GEOREFERENCE': True,
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
             'INCLUDE_METADATA': True,
             'LAYERS': None,
             'LAYOUT': 'Modèle_amphi_patrimoniaux',
@@ -240,41 +527,23 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['ExporterLatlasAuFormatImageAmphiPatri'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(15)
-        if feedback.isCanceled():
-            return {}
-
-        # Branche conditionnelle amphi 2
-        alg_params = {
-        }
-        outputs['BrancheConditionnelleAmphi2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
-        feedback.setCurrentStep(16)
+        feedback.setCurrentStep(37)
         if feedback.isCanceled():
             return {}
 
         # Activer la couche v2 insectes patri
         alg_params = {
-            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_coloptres'],
-            'COUCHE_DYNAMIQUE2': parameters['couche_dynamique_odonates'],
-            'COUCHE_DYNAMIQUE3': parameters['couche_dynamique_orthoptres'],
-            'COUCHE_DYNAMIQUE4': parameters['couche_dynamique_rhopalocres'],
-            'COUCHE_DYNAMIQUE5': parameters['couche_dynamique_htrocres'],
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_coloptres_patrimoniaux'],
+            'COUCHE_DYNAMIQUE2': parameters['couche_dynamique_odonates_patrimoniaux'],
+            'COUCHE_DYNAMIQUE3': parameters['couche_dynamique_orthoptres_patrimoniaux'],
+            'COUCHE_DYNAMIQUE4': parameters['couche_dynamique_rhopalocres_patrimoniaux'],
+            'COUCHE_DYNAMIQUE5': parameters['couche_dynamique_htrocres_patrimoniaux'],
             'COUCHE_PERMANENTE_RASTER': parameters['raster'],
             'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
         }
         outputs['ActiverLaCoucheV2InsectesPatri'] = processing.run('script:activer_couche_v2', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(17)
-        if feedback.isCanceled():
-            return {}
-
-        # Branche conditionnelle Insectes
-        alg_params = {
-        }
-        outputs['BrancheConditionnelleInsectes'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
-        feedback.setCurrentStep(18)
+        feedback.setCurrentStep(38)
         if feedback.isCanceled():
             return {}
 
@@ -283,7 +552,16 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleInsectes2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(19)
+        feedback.setCurrentStep(39)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle Insectes
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleInsectes'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(40)
         if feedback.isCanceled():
             return {}
 
@@ -293,10 +571,10 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
             'COVERAGE_LAYER': parameters['couche_de_couverture'],
             'DPI': None,
             'EXTENSION': 8,  # png
-            'FILENAME_EXPRESSION': "'Localisation des espèces dinsectes patrimoniaux'||@atlas_featurenumber",
+            'FILENAME_EXPRESSION': "'Localisation_des_espèces_dinsectes_patrimoniaux'||@atlas_featurenumber",
             'FILTER_EXPRESSION': '',
-            'FOLDER': 'C:\\Users\\lored\\Documents',
-            'GEOREFERENCE': True,
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
             'INCLUDE_METADATA': True,
             'LAYERS': None,
             'LAYOUT': 'Modèle_insectes_patrimoniaux',
@@ -305,7 +583,7 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['ExporterLatlasAuFormatImageInsectesPatri'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(20)
+        feedback.setCurrentStep(41)
         if feedback.isCanceled():
             return {}
 
@@ -317,7 +595,16 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['ActiverLaCoucheChiroptres'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(21)
+        feedback.setCurrentStep(42)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle chiroptères 2
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleChiroptres2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(43)
         if feedback.isCanceled():
             return {}
 
@@ -326,7 +613,7 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleChiroptres'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(22)
+        feedback.setCurrentStep(44)
         if feedback.isCanceled():
             return {}
 
@@ -336,40 +623,31 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
             'COVERAGE_LAYER': parameters['couche_de_couverture'],
             'DPI': None,
             'EXTENSION': 8,  # png
-            'FILENAME_EXPRESSION': "'Localisation des espèces de chauves-souris'||@atlas_featurenumber",
+            'FILENAME_EXPRESSION': "'Localisation_des_espèces_de_chauves-souris'||@atlas_featurenumber",
             'FILTER_EXPRESSION': '',
-            'FOLDER': 'C:\\Users\\lored\\Documents',
-            'GEOREFERENCE': True,
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
             'INCLUDE_METADATA': True,
-            'LAYERS': None,
+            'LAYERS': parameters['couche_dynamique_chiroptres'],
             'LAYOUT': 'Modèle_chiroptères',
             'SORTBY_EXPRESSION': '',
             'SORTBY_REVERSE': False
         }
         outputs['ExporterLatlasAuFormatImageChiroptres'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(23)
-        if feedback.isCanceled():
-            return {}
-
-        # Branche conditionnelle chiroptères 2
-        alg_params = {
-        }
-        outputs['BrancheConditionnelleChiroptres2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
-        feedback.setCurrentStep(24)
+        feedback.setCurrentStep(45)
         if feedback.isCanceled():
             return {}
 
         # Activer la couche mammif 
         alg_params = {
-            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_mammif_2'],
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_mammifres'],
             'COUCHE_PERMANENTE_RASTER': parameters['raster'],
             'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
         }
         outputs['ActiverLaCoucheMammif'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(25)
+        feedback.setCurrentStep(46)
         if feedback.isCanceled():
             return {}
 
@@ -378,7 +656,7 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleMammif3'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(26)
+        feedback.setCurrentStep(47)
         if feedback.isCanceled():
             return {}
 
@@ -387,7 +665,7 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleMammif4'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(27)
+        feedback.setCurrentStep(48)
         if feedback.isCanceled():
             return {}
 
@@ -397,10 +675,10 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
             'COVERAGE_LAYER': parameters['couche_de_couverture'],
             'DPI': None,
             'EXTENSION': 8,  # png
-            'FILENAME_EXPRESSION': "'Localisation des données de mammifères'||@atlas_featurenumber",
+            'FILENAME_EXPRESSION': "'Localisation_des_données_de_mammifères'||@atlas_featurenumber",
             'FILTER_EXPRESSION': '',
-            'FOLDER': 'C:\\Users\\lored\\Documents',
-            'GEOREFERENCE': True,
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
             'INCLUDE_METADATA': True,
             'LAYERS': None,
             'LAYOUT': 'Modèle_mammif',
@@ -409,37 +687,28 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['ExporterLatlasAuFormatImageDonnesMammif'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(28)
+        feedback.setCurrentStep(49)
         if feedback.isCanceled():
             return {}
 
         # Activer la couche oiseaux
         alg_params = {
-            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_oiseaux_2'],
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_oiseaux'],
             'COUCHE_PERMANENTE_RASTER': parameters['raster'],
             'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
         }
         outputs['ActiverLaCoucheOiseaux'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(29)
+        feedback.setCurrentStep(50)
         if feedback.isCanceled():
             return {}
 
-        # Branche conditionnelle oiseaux 4
+        # Branche conditionnelle oiseaux 
         alg_params = {
         }
-        outputs['BrancheConditionnelleOiseaux4'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+        outputs['BrancheConditionnelleOiseaux'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(30)
-        if feedback.isCanceled():
-            return {}
-
-        # Branche conditionnelle oiseaux 3
-        alg_params = {
-        }
-        outputs['BrancheConditionnelleOiseaux3'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
-        feedback.setCurrentStep(31)
+        feedback.setCurrentStep(51)
         if feedback.isCanceled():
             return {}
 
@@ -449,10 +718,10 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
             'COVERAGE_LAYER': parameters['couche_de_couverture'],
             'DPI': None,
             'EXTENSION': 8,  # png
-            'FILENAME_EXPRESSION': "'Localisation des données doiseaux'||@atlas_featurenumber",
+            'FILENAME_EXPRESSION': "'Localisation_des_données_doiseaux'||@atlas_featurenumber",
             'FILTER_EXPRESSION': '',
-            'FOLDER': 'C:\\Users\\lored\\Documents',
-            'GEOREFERENCE': True,
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
             'INCLUDE_METADATA': True,
             'LAYERS': None,
             'LAYOUT': 'Modèle_oiseaux',
@@ -461,19 +730,28 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['ExporterLatlasAuFormatImageDonnesOiseaux'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(32)
+        feedback.setCurrentStep(52)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle oiseaux 2
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleOiseaux2'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(53)
         if feedback.isCanceled():
             return {}
 
         # Activer la couche reptiles
         alg_params = {
-            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_reptiles_2'],
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_reptiles'],
             'COUCHE_PERMANENTE_RASTER': parameters['raster'],
             'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
         }
         outputs['ActiverLaCoucheReptiles'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(33)
+        feedback.setCurrentStep(54)
         if feedback.isCanceled():
             return {}
 
@@ -482,7 +760,7 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleReptiles4'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(34)
+        feedback.setCurrentStep(55)
         if feedback.isCanceled():
             return {}
 
@@ -491,7 +769,7 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleReptiles3'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(35)
+        feedback.setCurrentStep(56)
         if feedback.isCanceled():
             return {}
 
@@ -501,10 +779,10 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
             'COVERAGE_LAYER': parameters['couche_de_couverture'],
             'DPI': None,
             'EXTENSION': 8,  # png
-            'FILENAME_EXPRESSION': "'Localisation des données de reptiles'||@atlas_featurenumber",
+            'FILENAME_EXPRESSION': "'Localisation_des_données_de_reptiles'||@atlas_featurenumber",
             'FILTER_EXPRESSION': '',
-            'FOLDER': 'C:\\Users\\lored\\Documents',
-            'GEOREFERENCE': True,
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
             'INCLUDE_METADATA': True,
             'LAYERS': None,
             'LAYOUT': 'Modèle_reptiles',
@@ -513,19 +791,28 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['ExporterLatlasAuFormatImageDonnesReptiles'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(36)
+        feedback.setCurrentStep(57)
         if feedback.isCanceled():
             return {}
 
         # Activer la couche amphi
         alg_params = {
-            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_amphi_2'],
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_amphibiens'],
             'COUCHE_PERMANENTE_RASTER': parameters['raster'],
             'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
         }
         outputs['ActiverLaCoucheAmphi'] = processing.run('script:activer_couche', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(37)
+        feedback.setCurrentStep(58)
+        if feedback.isCanceled():
+            return {}
+
+        # Branche conditionnelle amphibiens 4
+        alg_params = {
+        }
+        outputs['BrancheConditionnelleAmphibiens4'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
+
+        feedback.setCurrentStep(59)
         if feedback.isCanceled():
             return {}
 
@@ -534,7 +821,7 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleAmphibiens3'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(38)
+        feedback.setCurrentStep(60)
         if feedback.isCanceled():
             return {}
 
@@ -544,10 +831,10 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
             'COVERAGE_LAYER': parameters['couche_de_couverture'],
             'DPI': None,
             'EXTENSION': 8,  # png
-            'FILENAME_EXPRESSION': "'Localisation des données damphibiens'||@atlas_featurenumber",
+            'FILENAME_EXPRESSION': "'Localisation_des_données_damphibiens'||@atlas_featurenumber",
             'FILTER_EXPRESSION': '',
-            'FOLDER': 'C:\\Users\\lored\\Documents',
-            'GEOREFERENCE': True,
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
             'INCLUDE_METADATA': True,
             'LAYERS': None,
             'LAYOUT': 'Modèle_amphi',
@@ -556,32 +843,23 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['ExporterLatlasAuFormatImageDonnesAmphi'] = processing.run('native:atlaslayouttoimage', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(39)
+        feedback.setCurrentStep(61)
         if feedback.isCanceled():
             return {}
 
         # Activer la couche v2 insectes 
         alg_params = {
-            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_coloptres_2'],
-            'COUCHE_DYNAMIQUE2': parameters['couche_dynamique_odonates_2'],
-            'COUCHE_DYNAMIQUE3': parameters['couche_dynamique_orthoptres_2'],
-            'COUCHE_DYNAMIQUE4': parameters['couche_dynamique_rhopalocres_2'],
-            'COUCHE_DYNAMIQUE5': parameters['couche_dynamique_htrocres_2'],
+            'COUCHE_DYNAMIQUE': parameters['couche_dynamique_coloptres'],
+            'COUCHE_DYNAMIQUE2': parameters['couche_dynamique_odonates'],
+            'COUCHE_DYNAMIQUE3': parameters['couche_dynamique_orthoptres'],
+            'COUCHE_DYNAMIQUE4': parameters['couche_dynamique_rhopalocres'],
+            'COUCHE_DYNAMIQUE5': parameters['couche_dynamique_htrocres'],
             'COUCHE_PERMANENTE_RASTER': parameters['raster'],
             'COUCHE_PERMANENTE_VECTEUR': parameters['couche_de_couverture']
         }
         outputs['ActiverLaCoucheV2Insectes'] = processing.run('script:activer_couche_v2', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(40)
-        if feedback.isCanceled():
-            return {}
-
-        # Branche conditionnelle amphibiens 4
-        alg_params = {
-        }
-        outputs['BrancheConditionnelleAmphibiens4'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
-
-        feedback.setCurrentStep(41)
+        feedback.setCurrentStep(62)
         if feedback.isCanceled():
             return {}
 
@@ -590,7 +868,7 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleInsectes4'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(42)
+        feedback.setCurrentStep(63)
         if feedback.isCanceled():
             return {}
 
@@ -599,7 +877,7 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         }
         outputs['BrancheConditionnelleInsectes3'] = processing.run('native:condition', alg_params, context=context, feedback=feedback, is_child_algorithm=True)
 
-        feedback.setCurrentStep(43)
+        feedback.setCurrentStep(64)
         if feedback.isCanceled():
             return {}
 
@@ -609,10 +887,10 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
             'COVERAGE_LAYER': parameters['couche_de_couverture'],
             'DPI': None,
             'EXTENSION': 8,  # png
-            'FILENAME_EXPRESSION': "'Localisation des données dinsectes'||@atlas_featurenumber",
+            'FILENAME_EXPRESSION': "'Localisation_des_données_dinsectes'||@atlas_featurenumber",
             'FILTER_EXPRESSION': '',
-            'FOLDER': 'C:\\Users\\lored\\Documents',
-            'GEOREFERENCE': True,
+            'FOLDER': parameters['dossier_atlas'],
+            'GEOREFERENCE': False,
             'INCLUDE_METADATA': True,
             'LAYERS': None,
             'LAYOUT': 'Modèle_insectes',
@@ -623,10 +901,10 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         return results
 
     def name(self):
-        return 'Exportation atlas tous taxons v3'
+        return 'Exportation des Atlas finalisé'
 
     def displayName(self):
-        return 'Exportation atlas tous taxons v3'
+        return 'Exportation des Atlas finalisé'
 
     def group(self):
         return ''
@@ -635,4 +913,4 @@ class ExportationAtlasTousTaxonsV3(QgsProcessingAlgorithm):
         return ''
 
     def createInstance(self):
-        return ExportationAtlasTousTaxonsV3()
+        return ExportationDesAtlasFinalis()
