@@ -1,0 +1,79 @@
+Sub ListFiles()
+    Dim fs As Object
+    Dim folderPath As String
+    Dim ws As Worksheet
+    Dim tbl As ListObject
+    Dim sheetName As String
+    Dim tableName As String
+
+
+' Demander le nom de la feuille et du tableau
+    sheetName = InputBox("Entrez le nom de la feuille où les données doivent être ajoutées :")
+    tableName = InputBox("Entrez le nom du tableau où les données doivent être ajoutées :")
+
+    On Error Resume Next
+    Set ws = ThisWorkbook.Sheets(sheetName)
+    If ws Is Nothing Then
+        Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.Count))
+        ws.Name = sheetName
+    End If
+    On Error GoTo 0
+
+    ' Vérifier si le tableau existe et le créer si nécessaire
+    On Error Resume Next
+    Set tbl = ws.ListObjects(tableName)
+    If tbl Is Nothing Then
+        Set tbl = ws.ListObjects.Add(xlSrcRange, ws.Range("A1:F1"), , xlYes)
+        tbl.Name = tableName
+        tbl.HeaderRowRange.Value = Array("Nom de fichier", "Dernière modification", "Dossier", "Chemin complet", "Description", "En double")
+    End If
+    On Error GoTo 0
+
+ ' Demander à l'utilisateur de choisir le dossier
+    With Application.FileDialog(msoFileDialogFolderPicker)
+        .Title = "Sélectionnez un dossier"
+        .AllowMultiSelect = False
+        .Show
+        If .SelectedItems.Count > 0 Then
+            folderPath = .SelectedItems(1)
+        Else
+            Exit Sub ' Sortie si aucun dossier n'est choisi
+        End If
+    End With
+    
+    Set fs = CreateObject("Scripting.FileSystemObject")
+    Call RecursiveFileSearch(fs.GetFolder(folderPath), fs, tbl)
+    
+    Set fs = Nothing
+End Sub
+
+Sub RecursiveFileSearch(folder As Object, fs As Object, tbl As ListObject)
+    Dim file As Object
+    Dim subfolder As Object
+    Dim newRow As ListRow
+    
+    ' Parcourir chaque fichier dans le dossier
+    For Each file In folder.Files
+        If LCase(fs.GetExtensionName(file.Path)) = "shp" Then
+            ' Ajouter une nouvelle ligne au tableau
+            Set newRow = tbl.ListRows.Add
+            With newRow
+                .Range(1, 1).Value = file.Name
+                .Range(1, 2).Value = file.DateLastModified
+                .Range(1, 3).Value = folder.Name
+                .Range(1, 4).Value = file.Path
+                ' Vérifier les doublons
+                If Application.WorksheetFunction.CountIf(tbl.DataBodyRange.Columns(1), file.Name) > 1 Then
+                    .Range(1, 6).Value = "Oui"
+                Else
+                    .Range(1, 6).Value = "Non"
+                End If
+            End With
+        End If
+    Next file
+    
+    ' Parcourir chaque sous-dossier
+    For Each subfolder In folder.SubFolders
+        Call RecursiveFileSearch(subfolder, fs, tbl)
+    Next subfolder
+End Sub
